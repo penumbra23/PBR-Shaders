@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: PBRMaterial
+  m_Name: RustedIron
   m_Shader: {fileID: 4800000, guid: 36ff2a7d2eabbc446b0bd3286a5d1a39, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
@@ -40,15 +40,19 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 4d0b75bb97cc40a4e8e9de633604a8ee, type: 3}
+        m_Texture: {fileID: 2800000, guid: bb4710e06c1a9384e965c021e90e3846, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _MetalnessMap:
+        m_Texture: {fileID: 2800000, guid: 37d05b4d5df22b148a21df940616a04e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _NormalMap:
-        m_Texture: {fileID: 2800000, guid: 288a57ee601e64f41a10db341a91552d, type: 3}
+        m_Texture: {fileID: 2800000, guid: 4862cf2dc54e8304e834b965b409d008, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
@@ -59,6 +63,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _RoughnessMap:
+        m_Texture: {fileID: 2800000, guid: 24d77aa7d2b70f145acea7b0c212c658, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
     - _BumpScale: 1
     - _Cutoff: 0.5
@@ -67,15 +75,21 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.05
     - _GlossyReflections: 1
+    - _IOR: 1
     - _Metallic: 0
+    - _Metalness: 0
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
+    - _Roughness: 0
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
+    - _AlbedoColor: {r: 0.6603774, g: 0.1996885, b: 0, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _FresnelColor: {r: 0.5283019, g: 0.4061944, b: 0.4061944, a: 1}
+    - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
