@@ -4,6 +4,14 @@
     {
         _MainTex ("Albedo Map", 2D) = "white" {}
         _NormalMap ("Normal Map", 2D) = "bump" {}
+        _MetalnessMap ("Metalness Map", 2D) = "black" {}
+        _RoughnessMap ("Roughness Map", 2D) = "black" {}
+
+        _AlbedoColor ("Albedo Color", Color) = (1.0, 1.0, 1.0, 1.0)
+        _SpecularColor ("Specular Color", Color) = (1.0, 1.0, 1.0, 1.0)
+
+        _Roughness ("Roughness", Range(0,1)) = 0
+        _Metalness ("Metalness", Range(0,1)) = 0
     }
     SubShader
     {
@@ -53,7 +61,7 @@
                 // Normal mapping parameters
                 o.tangent = normalize(mul(unity_ObjectToWorld, v.tangent).xyz);
                 o.normal = normalize(UnityObjectToWorldNormal(v.normal));
-                v.bitangent = normalize(cross(v.normal, v.tangent.xyz));
+                o.bitangent = normalize(cross(o.normal, o.tangent.xyz));
                 return o;
             }
 
