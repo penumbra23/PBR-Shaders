@@ -12,6 +12,9 @@
 
         _Roughness ("Roughness", Range(0,1)) = 0
         _Metalness ("Metalness", Range(0,1)) = 0
+
+        _EnvMap ("Environment Map", Cube) = "" {}
+        _IrradianceMap ("Irradiance Map", Cube) = "" {}
     }
     SubShader
     {
@@ -61,6 +64,9 @@
 
             float _Roughness;
             float _Metalness;
+
+            samplerCUBE _EnvMap;
+            samplerCUBE _IrradianceMap;
 
             // Outputs the spherical sampling coordinates from the normal
             float2 toRadialCoords(float3 normal)
@@ -120,8 +126,10 @@
                 float roughness = saturate(max(_Roughness, tex2D(_RoughnessMap, uv)).r);
                 float metalness = saturate(max(_Metalness, tex2D(_MetalnessMap, uv)).r);
 
+                float3 F0 = lerp(float3(0.04, 0.04, 0.04), _FresnelColor, metalness);
+
                 float D = trowbridgeReitzNDF(NdotH, roughness);
-                float3 F = fresnel(lerp(_FresnelColor, albedo, metalness), NdotV, roughness);
+                float3 F = fresnel(F0, NdotV, roughness);
                 float G = schlickBeckmannGAF(NdotV, roughness) * schlickBeckmannGAF(NdotL, roughness);
 
                 // DIRECT LIGHTING
@@ -131,6 +139,11 @@
 
                 float3 radiance = _LightColor0.rgb;
 
+                // INDIRECT LIGHTING
+
+                float3 diffuseIrradiance = sRGB2Lin(texCUBE(_IrradianceMap, i.normal));
+                float3 specularIrradiance = sRGB2Lin(texCUBE(_EnvMap, -reflect(viewVec, i.normal)));
+
                 // DIFFUSE COMPONENT
                 float3 diffuseTerm = lambertDiffuse(albedo) * (1 - F) * (1 - metalness) * _AlbedoColor;
                 
@@ -138,11 +151,12 @@
                 float3 specularTerm = G * D * F / (4 * NdotV * NdotL + 0.00001);
 
                 // BRDF OUTPUT
-                float3 brdfOutput = (diffuseTerm + specularTerm) * lambertDirect * radiance;
+                float3 brdfOutput = (diffuseTerm + specularTerm) * lambertDirect * (radiance);
 
                 // Add constant ambient (to boost the lighting, only temporary)
-                float3 ambient = 0.2 * diffuseTerm;
+                float3 ambient = diffuseIrradiance * albedo * (1 - F) * (1 - metalness);
                 
+                //return float4(F, 1.0);
                 return float4(gammaCorrection(brdfOutput + ambient), 1.0);
             }
             ENDCG
