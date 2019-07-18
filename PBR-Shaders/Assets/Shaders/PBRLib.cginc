@@ -53,7 +53,7 @@ float schlickBeckmannGAF(float dotProduct, float roughness)
 {
     float alpha = roughness * roughness;
     float k = alpha * 0.79788456080286536;  // sqrt(2 / PI)
-    return dotProduct / (dotProduct * (1 - k) + k);
+    return dotProduct / (dotProduct * (1 - k) + k + 0.0001);
 }
 
 // Helpers
