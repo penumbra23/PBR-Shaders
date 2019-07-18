@@ -2,10 +2,14 @@
 {
     Properties
     {
+        [MaterialToggle]
+        _IsSphere ("IsSphere", Float) = 1
+
         _MainTex ("Albedo Map", 2D) = "white" {}
         _NormalMap ("Normal Map", 2D) = "bump" {}
         _MetalnessMap ("Metalness Map", 2D) = "black" {}
         _RoughnessMap ("Roughness Map", 2D) = "black" {}
+        _OcclusionMap ("Occlusion Map", 2D) = "white" {}
 
         _AlbedoColor ("Albedo Color", Color) = (1.0, 1.0, 1.0, 1.0)
         _FresnelColor ("Fresnel Color (F0)", Color) = (1.0, 1.0, 1.0, 1.0)
@@ -58,12 +62,14 @@
             sampler2D _NormalMap;
             sampler2D _MetalnessMap;
             sampler2D _RoughnessMap;
+            sampler2D _OcclusionMap;
 
             float3 _AlbedoColor;
             float3 _FresnelColor;
 
             float _Roughness;
             float _Metalness;
+            float _IsSphere;
 
             samplerCUBE _EnvMap;
             samplerCUBE _IrradianceMap;
@@ -98,7 +104,7 @@
                     return float4(0.0, 0.0, 0.0, 0.0);
 
                 // Just for mapping the 2d texture onto a sphere
-                float2 uv = toRadialCoords(i.normal);
+                float2 uv = _IsSphere > 0.99 ? toRadialCoords(i.normal) : i.uv;
                 
                 // VECTORS
                 // Assuming this pass goes only for directional lights
@@ -125,6 +131,7 @@
                 // This assumes that the maximum param is right if both are supplied (range and map)
                 float roughness = saturate(max(_Roughness, tex2D(_RoughnessMap, uv)).r);
                 float metalness = saturate(max(_Metalness, tex2D(_MetalnessMap, uv)).r);
+                float occlusion = saturate(tex2D(_OcclusionMap, uv).r);
 
                 float3 F0 = lerp(float3(0.04, 0.04, 0.04), _FresnelColor, metalness);
 
@@ -151,12 +158,11 @@
                 float3 specularTerm = G * D * F / (4 * NdotV * NdotL + 0.00001);
 
                 // BRDF OUTPUT
-                float3 brdfOutput = (diffuseTerm + specularTerm) * lambertDirect * (radiance);
+                float3 brdfOutput = (diffuseTerm + specularTerm) * lambertDirect * (radiance) * occlusion;
 
                 // Add constant ambient (to boost the lighting, only temporary)
-                float3 ambient = diffuseIrradiance * albedo * (1 - F) * (1 - metalness);
-                
-                //return float4(F, 1.0);
+                float3 ambient = 0.2 * diffuseIrradiance * albedo * (1 - F) * (1 - metalness);
+
                 return float4(gammaCorrection(brdfOutput + ambient), 1.0);
             }
             ENDCG

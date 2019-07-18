@@ -24,6 +24,14 @@ float3 fresnel(float3 F0, float NdotV, float roughness)
     return F0 + (max(1.0 - roughness, F0) - F0) * pow5(NdotV);
 }
 
+float3 fresnelDisney(float HdotL, float NdotL, float NdotV, float roughness)
+{
+    float k = 0.5 + 2 * roughness * sqrt(HdotL);
+    float firstTerm = (k - 1) * pow5(NdotV) + 1;
+    float secondTerm = (k - 1) * pow5(NdotL) + 1;
+    return firstTerm * secondTerm;
+}
+
 float3 F0(float ior)
 {
     return pow((1.0 - ior) / (1.0 + ior), 2);
