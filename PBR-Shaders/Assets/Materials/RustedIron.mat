@@ -84,6 +84,7 @@ Material:
     - _Glossiness: 0.05
     - _GlossyReflections: 1
     - _IOR: 1
+    - _IsSphere: 1
     - _Metallic: 0
     - _Metalness: 0
     - _Mode: 0
