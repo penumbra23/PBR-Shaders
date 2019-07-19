@@ -40,6 +40,8 @@
             #include "Lighting.cginc"
             #include "PBRLib.cginc"
 
+            #define ENV_MAP_MIP_LVL 14
+
             struct v_in 
             {
                 float4 position : POSITION;
@@ -107,6 +109,7 @@
                 float2 uv = _IsSphere > 0.99 ? toRadialCoords(i.normal) : i.uv;
                 
                 // VECTORS
+
                 // Assuming this pass goes only for directional lights
                 float3 lightVec =  normalize(_WorldSpaceLightPos0.xyz);
 
@@ -116,6 +119,8 @@
                 // Calculate the tangent matrix if normal mapping is applied
                 float3x3 tangentMatrix = transpose(float3x3(i.tangent, i.bitangent, i.normal));
                 float3 normal = mul(tangentMatrix, tex2D(_NormalMap, uv).xyz * 2 - 1);
+
+                float3 reflectVec = -reflect(viewVec, normal);
 
                 // DOT PRODUCTS
                 float NdotL = max(dot(i.normal, lightVec), 0.0);
@@ -129,11 +134,11 @@
                 // PBR PARAMETERS
                 
                 // This assumes that the maximum param is right if both are supplied (range and map)
-                float roughness = saturate(max(_Roughness, tex2D(_RoughnessMap, uv)).r);
-                float metalness = saturate(max(_Metalness, tex2D(_MetalnessMap, uv)).r);
+                float roughness = saturate(max(_Roughness + EPS, tex2D(_RoughnessMap, uv)).r);
+                float metalness = saturate(max(_Metalness + EPS, tex2D(_MetalnessMap, uv)).r);
                 float occlusion = saturate(tex2D(_OcclusionMap, uv).r);
 
-                float3 F0 = lerp(float3(0.04, 0.04, 0.04), _FresnelColor, metalness);
+                float3 F0 = lerp(float3(0.04, 0.04, 0.04), _FresnelColor * albedo, metalness);
 
                 float D = trowbridgeReitzNDF(NdotH, roughness);
                 float3 F = fresnel(F0, NdotV, roughness);
@@ -144,26 +149,30 @@
                 // Normals from normal map
                 float lambertDirect = max(dot(normal, lightVec), 0.0);
 
-                float3 radiance = _LightColor0.rgb;
+                float3 directRadiance = _LightColor0.rgb * occlusion;
 
                 // INDIRECT LIGHTING
-
-                float3 diffuseIrradiance = sRGB2Lin(texCUBE(_IrradianceMap, i.normal));
-                float3 specularIrradiance = sRGB2Lin(texCUBE(_EnvMap, -reflect(viewVec, i.normal)));
+                float3 diffuseIrradiance = sRGB2Lin(texCUBE(_IrradianceMap, normal)) * occlusion;
+                float3 specularIrradiance = sRGB2Lin(texCUBElod(_EnvMap, half4(reflectVec, roughness * ENV_MAP_MIP_LVL))) * occlusion;
 
                 // DIFFUSE COMPONENT
-                float3 diffuseTerm = lambertDiffuse(albedo) * (1 - F) * (1 - metalness) * _AlbedoColor;
+                float3 diffuseDirectTerm = lambertDiffuse(albedo) * (1 - F) * (1 - metalness) * _AlbedoColor;
                 
                 // SPECULAR COMPONENT
-                float3 specularTerm = G * D * F / (4 * NdotV * NdotL + 0.00001);
+                float3 specularDirectTerm = G * D * F / (4 * NdotV * NdotL + EPS);
 
-                // BRDF OUTPUT
-                float3 brdfOutput = (diffuseTerm + specularTerm) * lambertDirect * (radiance) * occlusion;
+                // DIRECT BRDF OUTPUT
+                float3 brdfDirectOutput = (diffuseDirectTerm + specularDirectTerm) * lambertDirect * directRadiance;
 
                 // Add constant ambient (to boost the lighting, only temporary)
-                float3 ambient = 0.2 * diffuseIrradiance * albedo * (1 - F) * (1 - metalness);
+                float3 ambientDiffuse = diffuseIrradiance * lambertDiffuse(albedo) * (1 - F) * (1 - metalness);
 
-                return float4(gammaCorrection(brdfOutput + ambient), 1.0);
+                // For now the ambient specular looks quite okay, but it isn't physically correct
+                // TODO: try importance sampling the NDF from the environment map (just for testing & performance measuring)
+                // TODO: implement the split-sum approximation (UE4 paper)
+                float3 ambientSpecular = specularIrradiance * F;
+
+                return float4(gammaCorrection(brdfDirectOutput + ambientDiffuse + ambientSpecular), 1.0);
             }
             ENDCG
         }

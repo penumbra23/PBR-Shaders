@@ -1,6 +1,7 @@
 #define PI 3.14159265359
+#define EPS 0.00001
 
-float pow5(float v)
+float fPow5(float v)
 {
     return pow(1 - v, 5);
 }
@@ -16,19 +17,19 @@ float3 lambertDiffuse(float3 albedo)
 
 float3 fresnel(float3 F0, float NdotV)
 {
-    return F0 + (1 - F0) * pow5(NdotV);
+    return F0 + (1 - F0) * fPow5(NdotV);
 }
 
 float3 fresnel(float3 F0, float NdotV, float roughness)
 {
-    return F0 + (max(1.0 - roughness, F0) - F0) * pow5(NdotV);
+    return F0 + (max(1.0 - roughness, F0) - F0) * fPow5(NdotV);
 }
 
 float3 fresnelDisney(float HdotL, float NdotL, float NdotV, float roughness)
 {
     float k = 0.5 + 2 * roughness * sqrt(HdotL);
-    float firstTerm = (k - 1) * pow5(NdotV) + 1;
-    float secondTerm = (k - 1) * pow5(NdotL) + 1;
+    float firstTerm = (k - 1) * fPow5(NdotV) + 1;
+    float secondTerm = (k - 1) * fPow5(NdotL) + 1;
     return firstTerm * secondTerm;
 }
 
@@ -60,8 +61,8 @@ float cookTorranceGAF(float NdotH, float NdotV, float HdotV, float NdotL)
 float schlickBeckmannGAF(float dotProduct, float roughness)
 {
     float alpha = roughness * roughness;
-    float k = alpha * 0.79788456080286536;  // sqrt(2 / PI)
-    return dotProduct / (dotProduct * (1 - k) + k + 0.0001);
+    float k = alpha * 0.797884560803;  // sqrt(2 / PI)
+    return dotProduct / (dotProduct * (1 - k) + k);
 }
 
 // Helpers
