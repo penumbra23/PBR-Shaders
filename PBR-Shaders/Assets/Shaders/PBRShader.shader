@@ -2,9 +2,6 @@
 {
     Properties
     {
-        [MaterialToggle]
-        _IsSphere ("IsSphere", Float) = 1
-
         _MainTex ("Albedo Map", 2D) = "white" {}
         _NormalMap ("Normal Map", 2D) = "bump" {}
         _MetalnessMap ("Metalness Map", 2D) = "black" {}
@@ -71,25 +68,14 @@
 
             float _Roughness;
             float _Metalness;
-            float _IsSphere;
 
             samplerCUBE _EnvMap;
             samplerCUBE _IrradianceMap;
 
-            // Outputs the spherical sampling coordinates from the normal
-            float2 toRadialCoords(float3 normal)
-            {
-                float3 normalized = normalize(normal);
-                float x = atan2(normalized.z, normalized.x);
-                float y = acos(normalized.y);
-                float2 coords = float2(x, y) / PI;
-                return float2(coords.x * 0.5 + 0.5, 1.0 - coords.y);
-            }
-
             v_out vert (v_in v) 
             {
                 v_out o;           
-                o.uv = float2(2.0 * PI * v.uv.x, PI * v.uv.y);
+                o.uv = v.uv;
                 o.position = UnityObjectToClipPos(v.position);
                 o.worldPos = mul(unity_ObjectToWorld, v.position);
 
@@ -106,7 +92,7 @@
                     return float4(0.0, 0.0, 0.0, 0.0);
 
                 // Just for mapping the 2d texture onto a sphere
-                float2 uv = _IsSphere > 0.99 ? toRadialCoords(i.normal) : i.uv;
+                float2 uv = i.uv;
                 
                 // VECTORS
 
