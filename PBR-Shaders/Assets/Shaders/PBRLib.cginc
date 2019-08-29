@@ -49,6 +49,23 @@ float trowbridgeReitzNDF(float NdotH, float roughness)
     return alpha2 / denominator;
 }
 
+float trowbridgeReitzAnisotropicNDF(float NdotH, float roughness, float anisotropy, float HdotT, float HdotB)
+{
+    float aspect = sqrt(1.0 - 0.9 * anisotropy);
+    float alpha = roughness * roughness;
+
+    float roughT = alpha / aspect;
+    float roughB = alpha * aspect;
+
+    float alpha2 = alpha * alpha;
+    float NdotH2 = NdotH * NdotH;
+    float HdotT2 = HdotT * HdotT;
+    float HdotB2 = HdotB * HdotB;
+
+    float denominator = PI * roughT * roughB * pow(HdotT2 / (roughT * roughT) + HdotB2 / (roughB * roughB) + NdotH2, 2);
+    return 1 / denominator;
+}
+
 // Geometric attenuation functions
 
 float cookTorranceGAF(float NdotH, float NdotV, float HdotV, float NdotL)
