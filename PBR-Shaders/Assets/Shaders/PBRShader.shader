@@ -13,9 +13,7 @@
 
         _Roughness ("Roughness", Range(0,1)) = 0
         _Metalness ("Metalness", Range(0,1)) = 0
-
-        _EnvMap ("Environment Map", Cube) = "" {}
-        _IrradianceMap ("Irradiance Map", Cube) = "" {}
+        _Anisotropy ("Anisotropy", Range(0,1)) = 0
     }
     SubShader
     {
@@ -55,6 +53,9 @@
                 float3 tangent: TEXCOORD2;
                 float3 bitangent: TEXCOORD3;
                 float3 worldPos : TEXCOORD4;
+
+                float3 tangentLocal: TEXCOORD5;
+                float3 bitangentLocal: TEXCOORD6;
             };
 
             sampler2D _MainTex;
@@ -68,9 +69,7 @@
 
             float _Roughness;
             float _Metalness;
-
-            samplerCUBE _EnvMap;
-            samplerCUBE _IrradianceMap;
+            float _Anisotropy;
 
             v_out vert (v_in v) 
             {
@@ -83,6 +82,9 @@
                 o.tangent = normalize(mul(unity_ObjectToWorld, v.tangent).xyz);
                 o.normal = normalize(UnityObjectToWorldNormal(v.normal));
                 o.bitangent = normalize(cross(o.normal, o.tangent.xyz));
+
+                o.tangentLocal = v.tangent;
+                o.bitangentLocal = normalize(cross(v.normal, o.tangentLocal));
                 return o;
             }
 
@@ -113,6 +115,8 @@
                 float NdotH = max(dot(i.normal, halfVec), 0.0);
                 float HdotV = max(dot(halfVec, viewVec), 0.0);
                 float NdotV = max(dot(i.normal, viewVec), 0.0);
+                float HdotT = dot(halfVec, i.tangentLocal);
+                float HdotB = dot(halfVec, i.bitangentLocal);
 
                 // TEXTURE SAMPLES
                 float3 albedo = sRGB2Lin(tex2D(_MainTex, uv));
@@ -127,6 +131,7 @@
                 float3 F0 = lerp(float3(0.04, 0.04, 0.04), _FresnelColor * albedo, metalness);
 
                 float D = trowbridgeReitzNDF(NdotH, roughness);
+                D = trowbridgeReitzAnisotropicNDF(NdotH, roughness, _Anisotropy, HdotT, HdotB);
                 float3 F = fresnel(F0, NdotV, roughness);
                 float G = schlickBeckmannGAF(NdotV, roughness) * schlickBeckmannGAF(NdotL, roughness);
 
@@ -138,8 +143,8 @@
                 float3 directRadiance = _LightColor0.rgb * occlusion;
 
                 // INDIRECT LIGHTING
-                float3 diffuseIrradiance = sRGB2Lin(texCUBE(_IrradianceMap, normal)) * occlusion;
-                float3 specularIrradiance = sRGB2Lin(texCUBElod(_EnvMap, half4(reflectVec, roughness * ENV_MAP_MIP_LVL))) * occlusion;
+                float3 diffuseIrradiance = sRGB2Lin(UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, normal, UNITY_SPECCUBE_LOD_STEPS).rgb) * occlusion;
+                float3 specularIrradiance = sRGB2Lin(UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectVec, roughness * UNITY_SPECCUBE_LOD_STEPS).rgb) * occlusion;
 
                 // DIFFUSE COMPONENT
                 float3 diffuseDirectTerm = lambertDiffuse(albedo) * (1 - F) * (1 - metalness) * _AlbedoColor;
