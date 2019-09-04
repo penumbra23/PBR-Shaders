@@ -14,9 +14,6 @@
         _Roughness ("Roughness", Range(0,1)) = 0
         _Metalness ("Metalness", Range(0,1)) = 0
         _Anisotropy ("Anisotropy", Range(0,1)) = 0
-
-        _EnvMap ("Environment Map", Cube) = "" {}
-        _IrradianceMap ("Irradiance Map", Cube) = "" {}
     }
     SubShader
     {
@@ -73,9 +70,6 @@
             float _Roughness;
             float _Metalness;
             float _Anisotropy;
-
-            samplerCUBE _EnvMap;
-            samplerCUBE _IrradianceMap;
 
             v_out vert (v_in v) 
             {
@@ -149,8 +143,8 @@
                 float3 directRadiance = _LightColor0.rgb * occlusion;
 
                 // INDIRECT LIGHTING
-                float3 diffuseIrradiance = sRGB2Lin(texCUBE(_IrradianceMap, normal)) * occlusion;
-                float3 specularIrradiance = sRGB2Lin(texCUBElod(_EnvMap, half4(reflectVec, roughness * ENV_MAP_MIP_LVL))) * occlusion;
+                float3 diffuseIrradiance = sRGB2Lin(UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, normal, UNITY_SPECCUBE_LOD_STEPS).rgb) * occlusion;
+                float3 specularIrradiance = sRGB2Lin(UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectVec, roughness * UNITY_SPECCUBE_LOD_STEPS).rgb) * occlusion;
 
                 // DIFFUSE COMPONENT
                 float3 diffuseDirectTerm = lambertDiffuse(albedo) * (1 - F) * (1 - metalness) * _AlbedoColor;
