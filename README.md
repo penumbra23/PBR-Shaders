@@ -18,6 +18,7 @@ The lighting models are:
 ## Structure
 
 The **Assets** folder contains the shader library, textures, materials and demo scenes.
+
 |Folder| Description  |
 |--|--|
 | Shaders | **PBRLib.cginc** & **PBRShader.shader** are both the PBR function library and main PBR shader program |
