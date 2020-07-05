@@ -15,6 +15,10 @@ The lighting models are:
 - _Spot light_
 - _Image-based lighting_ using environment maps
 
+## Samples
+
+![Sample1](./images/1.png) ![Sample1](./images/2.png) ![Sample1](./images/3.png)
+
 ## Structure
 
 The **Assets** folder contains the shader library, textures, materials and demo scenes.
@@ -25,6 +29,17 @@ The **Assets** folder contains the shader library, textures, materials and demo 
 | Materials | Sample materials such as gold, rough stone, slippery rock, walls, etc. |
 | Textures | Data for the roughness/metallic workflow, albedo, occlusion and environment maps |
 | Scenes | Just demo scenes |
+
+## Credits
+
+PBR textures:
+- [cc0](https://cc0textures.com/)
+- [FreePBR](https://freepbr.com/)
+- [Poliigon](https://www.poliigon.com/) (here I've only used the free ones, but it's definitely worth getting a subscription)
+
+Environment maps:
+- [Texturify](https://texturify.com/)
+- [HDRI Hub](https://www.hdri-hub.com/free-hdri-environments-for-download)
 
 ## License
 
